@@ -24,17 +24,17 @@ helper() {
   echo "Tools Count & List Checker cPanel"
   echo
   echo -e "Syntax: "
-  echo -e "\tlistuserdata.sh [-c|-l|-f|-h] \n"
+  echo -e "\t listuserdata.sh [-c|-l|-f|-h] \n"
   echo -e "Usage: "
-  echo -e "\tlistuserdata.sh -c hilmi"
-  echo -e "\tlistuserdata.sh -l hilmi"
-  echo -e "\tlistuserdata.sh -f hilmi"
-  echo -e "\tlistuserdata.sh -h \n"
+  echo -e "\t listuserdata.sh -c hilmi"
+  echo -e "\t listuserdata.sh -l hilmi"
+  echo -e "\t listuserdata.sh -f hilmi"
+  echo -e "\t listuserdata.sh -h \n"
   echo -e "Options: "
-  echo -e "\t-c \tspecify a cPanel Username (do) count"
-  echo -e "\t-l \tspecify a cPanel Username (do) list"
-  echo -e "\t-f \tspecify a cPanel Username (do) count & list"
-  echo -e "\t-h \tprint help message."
+  echo -e "\t-c \t specify a cPanel Username (do) count"
+  echo -e "\t-l \t specify a cPanel Username (do) list"
+  echo -e "\t-f \t specify a cPanel Username (do) count & list"
+  echo -e "\t-h \t print help message."
   echo
   tput sgr0
   exit 0
