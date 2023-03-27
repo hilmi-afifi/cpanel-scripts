@@ -24,12 +24,12 @@ helper() {
   echo "Look Full Backup cPanel"
   echo
   echo -e "Syntax: "
-  echo -e "\tlookfullbackup.sh [-u|-h] \n"
+  echo -e "\t lookfullbackup.sh [-u|-h] \n"
   echo -e "Usage: "
-  echo -e "\tlookfullbackup.sh -u hilmi \n"
+  echo -e "\t lookfullbackup.sh -u hilmi \n"
   echo -e "Options: "
-  echo -e "\t-u \tLook Tar Backup."
-  echo -e "\t-h \tprint this help."
+  echo -e "\t-u \t Look Tar Backup."
+  echo -e "\t-h \t print this help."
   echo
   tput sgr0
   exit 0
