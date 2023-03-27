@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# DDOS IP
+# DDOS Toolkit Protection cPanel
 # (c) 2022 Hilmi
 
 # set verbose to null
@@ -21,25 +21,83 @@ WHITE=$(tput bold; tput setaf 7)
 helper() {
   tput bold
   tput setaf 2
-  echo "DDOS Protection with adding IP into CSF:deny & IMUNIFY:scope-group"
+  echo "DDOS Toolkit Protection cPanel"
   echo
   echo -e "Syntax: "
-  echo -e "\tddosip.sh [-d|-i|-c|-h] \n"
+  echo -e "\t ddostoolkit.sh [-s|-u|-d|-i|-c|-h] \n"
   echo -e "Usage: "
-  echo -e "\tddosip.sh -d hilmiafifi.com"
-  echo -e "\tddosip.sh -i 123.123.123.123"
-  echo -e "\tddosip.sh -c hilmiafifi.com \n"
+  echo -e "\t ddostoolkit.sh -s hilmiafifi.com"
+  echo -e "\t ddostoolkit.sh -u hilmiafifi.com"
+  echo -e "\t ddostoolkit.sh -d hilmiafifi.com"
+  echo -e "\t ddostoolkit.sh -i 123.123.123.123"
+  echo -e "\t ddostoolkit.sh -c hilmiafifi.com \n"
   echo -e "Options: "
-  echo -e "\t-d \tspecify a Suspected Domains (then) add into csf and scope-group"
-  echo -e "\t-i \tspecify a Suspected IP Addr (then) add into csf and scope-group"
-  echo -e "\t-c \tspecify a Suspected IP Addr (then) only check using tail."
-  echo -e "\t-h \tprint help message."
+  echo -e "\t-s \t specify a Suspected Domains (then) swap/block"
+  echo -e "\t-u \t specify a Suspected Domains (then) unswap/unblock"
+  echo -e "\t-d \t specify a Suspected Domains (then) add into csf and scope-group"
+  echo -e "\t-i \t specify a Suspected IP Addr (then) add into csf and scope-group"
+  echo -e "\t-c \t specify a Suspected IP Addr (then) only check using tail."
+  echo -e "\t-h \t print help message."
   echo
   tput sgr0
   exit 0
 }
 
-# main workhorse to grep and block ddos ip
+# main workhorse to swap each passed domains
+ddoson () {
+
+  # get some domain suspected
+  suspect=$1	
+
+  # make sure domains is valid
+  if [ $suspect ]
+
+  # then start doing work
+  then
+
+    # start blocking suspected domain
+    echo -e "\n${YELLOW}Swapping domain : '$suspect' using SWAPIP ${EGREEN}";
+    /usr/local/cpanel/bin/swapip $(hostname -i) 127.0.0.1 127.0.0.1 $suspect
+
+    # checking log
+    echo -e "\n${YELLOW}Checking NGINX access.log past 30 minutes${EGREEN}"
+    rm -f type f /web/$suspect.log
+    awk -vDate=`date -d'now-30 minutes' +[%d/%b/%Y:%H:%M:%S` '$5 > Date {print Date, $0}' /var/log/nginx/access.log | grep $suspect > /web/$suspect.log
+    echo -e "Export to '/web/$suspect.log'"
+
+    # else print helper
+    else
+      helper
+      exit 1
+    fi
+  return 0
+}
+
+# second workhorse to unswap each passed domains
+ddosoff () {
+
+  # get some domain suspected
+  suspect=$1
+
+  # make sure domains is valid
+  if [ $suspect ]
+
+  # then start doing work
+  then
+
+    # start unblocking suspected domain
+    echo -e "\n${YELLOW}Unswapping domain : '$suspect' using SWAPIP ${EGREEN}";
+    /usr/local/cpanel/bin/swapip 127.0.0.1 $(hostname -i) $(hostname -i) $suspect
+
+    # else, print helper
+    else
+      helper
+      exit 1
+    fi
+  return 0
+}
+
+# third workhorse to grep and block ddos ip
 ddosip () {
 
   # get some domain suspected
@@ -51,17 +109,18 @@ ddosip () {
   # then start doing work
   then
 
-    # start adding into csf and scope-group
+    # start checking suspect ip addr
     echo -e "\n${GREEN}==| Adding IP domain:'{$suspect}' into csf and scope-group ${EGREEN}"
     tail /var/log/nginx/access.log -n 1000 | grep $suspect | awk '{print $1}' | sort | uniq -c | sort -hr | awk {'print $2'} | grep -Ev '(8.8.8.8|8.8.4.4)' > /web/$suspect.ip
 
+    # start adding into csf
     for ip in $(cat /web/$suspect.ip)
       do
         echo -e "\n${YELLOW}CSF:deny${EGREEN}"
           csf -d $ip
       done
 
-    # start adding into csf and scope-group
+    # start adding imunify360
     for ip in $(cat /web/$suspect.ip)
       do
         echo -e "\n${CYAN}IMUNIFY:scope-group${EGREEN}"
@@ -76,7 +135,7 @@ ddosip () {
   return 0
 }
 
-# second workhorse to grep and block ddos ip
+# forth workhorse to grep and block ddos ip
 ddosipin () {
 
   # get some ip suspected
@@ -88,12 +147,14 @@ ddosipin () {
   # then start doing work
   then
 
-    # start adding into scope-group
+    # start adding into csf and imunify360
     echo -e "\n${GREEN}==| Adding IP :'{$ip}' into csf and scope-group ${EGREEN}"
 
+    # start adding into csf
     echo -e "\n${YELLOW}CSF:deny${EGREEN}"
     csf -d $ip
 
+    # start adding into imunify360
     echo -e "\n${CYAN}IMUNIFY:scope-group${EGREEN}"
     imunify360-agent blacklist ip add $ip --scope group
 
@@ -105,7 +166,7 @@ ddosipin () {
   return 0
 }
 
-# third workhorse to check ip access domain suspected
+# fifth workhorse to check ip access domain suspected
 ddosipcheck () {
 
   # get some domain suspected
@@ -141,6 +202,12 @@ case "$1" in
       verbose="-v"
 
 case "$2" in
+    -s)
+      ddoson "$3"
+      ;;
+    -u)
+      ddosoff "$3"
+      ;;
     -d)
       ddosip "$3"
       ;;
@@ -159,6 +226,12 @@ case "$2" in
 
   esac
   ;;
+    -s)
+      ddoson "$2"
+      ;;
+    -u)
+      ddosoff "$2"
+      ;;
     -d)
       ddosip "$2"
       ;;
